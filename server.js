@@ -128,19 +128,7 @@ app.get('/client/:client_id', async function (req, res) {
             })
         }
         const ratings = await trx
-            .select([
-                'energy',
-                'work/income',
-                'partner',
-                'children/next_gen',
-                'friends',
-                'life_attitude',
-                'family',
-                'intel/acad',
-                'giving_back',
-                'hobbies',
-                'rating_date'
-            ])
+            .select(categories)
             .from('ratings')
             .where({ "client_id": req.params.client_id })
 
@@ -178,6 +166,11 @@ app.delete('/client/:client_id', async function (req, res) {
                 message: 'client name does not exist.',
             })
         }
+        await trx
+            .from('ratings')
+            .where({ "client_id": req.params.client_id })
+            .del()
+
         const client = await trx
             .from('clients')
             .where({ "client_id": req.params.client_id })
