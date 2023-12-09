@@ -40,7 +40,7 @@ app.post('/clients', async function (req, res) {
             if (existing_client.length > 0) {
                 return res.status(400).send({
                     ok: false,
-                    message: 'client name already exist.',
+                    message: 'This client name already exist.',
                 })
             }
 
@@ -258,7 +258,7 @@ app.post('/ratings', async function (req, res) {
                 console.log(existing_rating)
                 return res.status(400).send({
                     ok: false,
-                    message: 'rating already exist.',
+                    message: 'rating for this date already exists.',
                 })
             }
 
