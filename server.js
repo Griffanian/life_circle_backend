@@ -2,8 +2,10 @@ const express = require('express')
 require('dotenv').config()
 const app = express()
 const cors = require('cors');
+const { sign, verify } = require('jsonwebtoken')
 
 const categories = process.env.REACT_APP_CATEGORIES.split(',');
+const secretKey = process.env.JWT_SECRET
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -28,8 +30,84 @@ const db = require('knex')({
     }
 });
 
+const users = [
+    {
+        id: 1,
+        username: 'Admin',
+        password: process.env.ADMIN_PASSWORD,
+    }
+]
 
-app.post('/clients', async function (req, res) {
+const verifyToken = (req, res, next) => {
+    if (!req.headers.cookie) {
+        return res.status(403).json({ message: 'No cookies found' });
+    }
+
+    const cookies = req.headers.cookie.split(';');
+
+    let token = null;
+    for (const cookie of cookies) {
+        const trimmedCookie = cookie.trim();
+        const parts = trimmedCookie.split('=');
+        if (parts.length === 2 && parts[0] === 'access-token') {
+            token = parts[1];
+            break; // Found access-token, exit loop
+        }
+    }
+
+    if (!token) {
+        return res.status(403).json({ message: 'Token not provided' });
+    }
+
+    verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Failed to authenticate token' });
+        }
+
+        req.decoded = decoded;
+        next();
+    });
+};
+
+app.get('/', verifyToken, (req, res) => {
+    res.send({
+        ok: true,
+        message: 'connection established',
+        username: req.decoded.username
+    })
+
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    console.log(username, password);
+    const user = users.find(
+        (u) => u.username === username && u.password === password
+    );
+
+    if (user) {
+
+        const token = sign({ id: user.id, username: user.username }, secretKey, {
+            expiresIn: '1h',
+        });
+
+        res.cookie('access-token', token, {
+            maxAge: 60 * 60 * 24 * 7 * 1000,
+            sameSite: false,
+        })
+        res.status(200).send({
+            'ok': true,
+            'message': 'User successfully logged in',
+        });
+    } else {
+        res.status(401).json({
+            ok: false,
+            message: 'Invalid username or password'
+        });
+    }
+});
+
+app.post('/clients', verifyToken, async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_client = await trx
@@ -63,7 +141,7 @@ app.post('/clients', async function (req, res) {
     }
 });
 
-app.put('/clients/', async function (req, res) {
+app.put('/clients/', verifyToken, async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_client = await trx
@@ -99,7 +177,7 @@ app.put('/clients/', async function (req, res) {
     }
 });
 
-app.get('/clients', async function (req, res) {
+app.get('/clients', verifyToken, async function (req, res) {
     try {
         const clients = await db.select('*').from('clients')
         res.status(200).send({
@@ -114,7 +192,7 @@ app.get('/clients', async function (req, res) {
     }
 });
 
-app.get('/client/:client_id', async function (req, res) {
+app.get('/client/:client_id', verifyToken, async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('client_id', 'client_name')
@@ -153,7 +231,7 @@ app.get('/client/:client_id', async function (req, res) {
     });
 });
 
-app.delete('/client/:client_id', async function (req, res) {
+app.delete('/client/:client_id', verifyToken, async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('client_id', 'client_name')
@@ -184,7 +262,7 @@ app.delete('/client/:client_id', async function (req, res) {
     });
 });
 
-app.get('/ratings/:client_id', async function (req, res) { //get all ratings for this client
+app.get('/ratings/:client_id', verifyToken, async function (req, res) { //get all ratings for this client
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('*')
@@ -213,7 +291,7 @@ app.get('/ratings/:client_id', async function (req, res) { //get all ratings for
     });
 });
 
-app.get('/rating/:rating_id', async function (req, res) { //get a specific rating 
+app.get('/rating/:rating_id', verifyToken, async function (req, res) { //get a specific rating 
     await db.transaction(async (trx) => {
         const existing_rating = await trx
             .select('*')
@@ -245,7 +323,7 @@ app.get('/rating/:rating_id', async function (req, res) { //get a specific ratin
     });
 });
 
-app.post('/ratings', async function (req, res) {
+app.post('/ratings', verifyToken, async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_rating = await trx
@@ -290,7 +368,7 @@ app.post('/ratings', async function (req, res) {
     }
 });
 
-app.put('/ratings/', async function (req, res) {
+app.put('/ratings/', verifyToken, async function (req, res) {
     try {
         console.log(req.body)
         await db.transaction(async (trx) => {
@@ -337,7 +415,7 @@ app.put('/ratings/', async function (req, res) {
     }
 });
 
-app.delete('/rating/:rating_id', async function (req, res) {
+app.delete('/rating/:rating_id', verifyToken, async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('rating_id')
