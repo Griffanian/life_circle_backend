@@ -80,7 +80,6 @@ app.get('/', verifyToken, (req, res) => {
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    console.log(username, password);
     const user = users.find(
         (u) => u.username === username && u.password === password
     );
@@ -90,7 +89,7 @@ app.post('/login', (req, res) => {
         const token = sign({ id: user.id, username: user.username }, secretKey, {
             expiresIn: '1h',
         });
-
+        console.log(token);
         res.cookie('access-token', token, {
             maxAge: 60 * 60 * 24 * 7 * 1000,
             sameSite: false,
