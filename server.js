@@ -69,7 +69,7 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-app.get('/', verifyToken, (req, res) => {
+app.get('/', (req, res) => {
     res.send({
         ok: true,
         message: 'connection established',
@@ -106,7 +106,7 @@ app.post('/login', (req, res) => {
     }
 });
 
-app.post('/clients', verifyToken, async function (req, res) {
+app.post('/clients', async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_client = await trx
@@ -140,7 +140,7 @@ app.post('/clients', verifyToken, async function (req, res) {
     }
 });
 
-app.put('/clients/', verifyToken, async function (req, res) {
+app.put('/clients/', async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_client = await trx
@@ -176,7 +176,7 @@ app.put('/clients/', verifyToken, async function (req, res) {
     }
 });
 
-app.get('/clients', verifyToken, async function (req, res) {
+app.get('/clients', async function (req, res) {
     try {
         const clients = await db.select('*').from('clients')
         res.status(200).send({
@@ -191,7 +191,7 @@ app.get('/clients', verifyToken, async function (req, res) {
     }
 });
 
-app.get('/client/:client_id', verifyToken, async function (req, res) {
+app.get('/client/:client_id', async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('client_id', 'client_name')
@@ -230,7 +230,7 @@ app.get('/client/:client_id', verifyToken, async function (req, res) {
     });
 });
 
-app.delete('/client/:client_id', verifyToken, async function (req, res) {
+app.delete('/client/:client_id', async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('client_id', 'client_name')
@@ -261,7 +261,7 @@ app.delete('/client/:client_id', verifyToken, async function (req, res) {
     });
 });
 
-app.get('/ratings/:client_id', verifyToken, async function (req, res) { //get all ratings for this client
+app.get('/ratings/:client_id', async function (req, res) { //get all ratings for this client
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('*')
@@ -290,7 +290,7 @@ app.get('/ratings/:client_id', verifyToken, async function (req, res) { //get al
     });
 });
 
-app.get('/rating/:rating_id', verifyToken, async function (req, res) { //get a specific rating 
+app.get('/rating/:rating_id', async function (req, res) { //get a specific rating 
     await db.transaction(async (trx) => {
         const existing_rating = await trx
             .select('*')
@@ -322,7 +322,7 @@ app.get('/rating/:rating_id', verifyToken, async function (req, res) { //get a s
     });
 });
 
-app.post('/ratings', verifyToken, async function (req, res) {
+app.post('/ratings', async function (req, res) {
     try {
         await db.transaction(async (trx) => {
             const existing_rating = await trx
@@ -367,7 +367,7 @@ app.post('/ratings', verifyToken, async function (req, res) {
     }
 });
 
-app.put('/ratings/', verifyToken, async function (req, res) {
+app.put('/ratings/', async function (req, res) {
     try {
         console.log(req.body)
         await db.transaction(async (trx) => {
@@ -414,7 +414,7 @@ app.put('/ratings/', verifyToken, async function (req, res) {
     }
 });
 
-app.delete('/rating/:rating_id', verifyToken, async function (req, res) {
+app.delete('/rating/:rating_id', async function (req, res) {
     await db.transaction(async (trx) => {
         const existing_client = await trx
             .select('rating_id')
