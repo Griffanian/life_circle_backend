@@ -73,7 +73,7 @@ app.get('/', (req, res) => {
     res.send({
         ok: true,
         message: 'connection established',
-        username: req.decoded.username
+        // username: req.decoded.username
     })
 
 });
