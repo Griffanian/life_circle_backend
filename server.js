@@ -102,7 +102,7 @@ app.post('/login', (req, res) => {
         });
         res.cookie('access-token', token, {
             maxAge: 60 * 60 * 24 * 7 * 1000,
-            sameSite: 'none',
+            sameSite: false,
             secure: true
         })
         res.status(200).send({
