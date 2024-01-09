@@ -69,11 +69,13 @@ const verifyToken = (req, res, next) => {
     });
 };
 
+app.use(verifyToken)
+
 app.get('/', (req, res) => {
     res.send({
         ok: true,
         message: 'connection established',
-        // username: req.decoded.username
+        username: req.decoded.username
     })
 
 });
@@ -89,7 +91,6 @@ app.post('/login', (req, res) => {
         const token = sign({ id: user.id, username: user.username }, secretKey, {
             expiresIn: '1h',
         });
-        console.log(token);
         res.cookie('access-token', token, {
             maxAge: 60 * 60 * 24 * 7 * 1000,
             sameSite: false,
