@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors({
     origin: [process.env.FRONTEND_URL, 'http://localhost:3000'],
     credentials: true,
+    exposedHeaders: ["Set-Cookie"],
 }))
 
 app.listen(process.env.PORT || 8080, (err) => {
