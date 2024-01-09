@@ -69,7 +69,15 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-app.use(verifyToken)
+var checkRoute = function (req, res, next) {
+    if (req._parsedUrl.pathname === '/login') {
+        next();
+    } else {
+        verifyToken(req, res, next)
+    }
+}
+
+app.use(checkRoute)
 
 app.get('/', (req, res) => {
     res.send({
